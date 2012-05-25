@@ -2,7 +2,7 @@ from __future__ import with_statement
 import datetime
 import time
 import warnings
-from itertools import imap, izip, starmap
+from itertools import starmap
 from redis.connection import ConnectionPool, UnixDomainSocketConnection
 from redis.exceptions import (
     ConnectionError,
@@ -98,7 +98,7 @@ def parse_info(response):
 def pairs_to_dict(response):
     "Create a dict given a list of key/value pairs"
     it = iter(response)
-    return dict(izip(it, it))
+    return dict(zip(it, it))
 
 def zset_score_pairs(response, **options):
     """
@@ -109,7 +109,7 @@ def zset_score_pairs(response, **options):
         return response
     score_cast_func = options.get('score_cast_func', float)
     it = iter(response)
-    return zip(it, imap(score_cast_func, it))
+    return zip(it, map(score_cast_func, it))
 
 def int_or_none(response):
     if response is None:
@@ -1471,7 +1471,7 @@ class BasePipeline(object):
                                 "pipeline execution")
         # We have to run response callbacks manually
         data = []
-        for r, cmd in izip(response, commands):
+        for r, cmd in zip(response, commands):
             if not isinstance(r, Exception):
                 args, options = cmd
                 command_name = args[0]

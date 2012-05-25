@@ -1,6 +1,6 @@
 import os
 import socket
-from itertools import chain, imap
+from itertools import chain
 from redis.exceptions import (
     RedisError,
     ConnectionError,
@@ -12,7 +12,7 @@ from redis.exceptions import (
 try:
     from cStringIO import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from io import StringIO
 
 try:
     import hiredis
@@ -70,12 +70,12 @@ class PythonParser(object):
 
             # no length, read a full line
             return self._fp.readline()[:-2]
-        except (socket.error, socket.timeout), e:
+        except (socket.error, socket.timeout) as e:
             raise ConnectionError("Error while reading from socket: %s" % \
                 (e.args,))
 
     def read_response(self):
-        response = self.read()
+        response = str(self.read(), 'utf8')
         if not response:
             raise ConnectionError("Socket closed on remote end")
 
@@ -95,20 +95,20 @@ class PythonParser(object):
             return response
         # int value
         elif byte == ':':
-            return long(response)
+            return int(response)
         # bulk response
         elif byte == '$':
             length = int(response)
             if length == -1:
                 return None
             response = self.read(length)
-            return response
+            return str(response, 'utf8')
         # multi-bulk response
         elif byte == '*':
             length = int(response)
             if length == -1:
                 return None
-            return [self.read_response() for i in xrange(length)]
+            return [self.read_response() for i in range(length)]
         raise InvalidResponse("Protocol Error")
 
 class HiredisParser(object):
@@ -140,7 +140,7 @@ class HiredisParser(object):
         while response is False:
             try:
                 buffer = self._sock.recv(4096)
-            except (socket.error, socket.timeout), e:
+            except (socket.error, socket.timeout) as e:
                 raise ConnectionError("Error while reading from socket: %s" % \
                     (e.args,))
             if not buffer:
@@ -187,7 +187,7 @@ class Connection(object):
             return
         try:
             sock = self._connect()
-        except socket.error, e:
+        except socket.error as e:
             raise ConnectionError(self._error_message(e))
 
         self._sock = sock
@@ -242,8 +242,8 @@ class Connection(object):
         if not self._sock:
             self.connect()
         try:
-            self._sock.sendall(command)
-        except socket.error, e:
+            self._sock.sendall(bytes(command, 'utf8'))
+        except socket.error as e:
             self.disconnect()
             if len(e.args) == 1:
                 _errno, errmsg = 'UNKNOWN', e.args[0]
@@ -272,14 +272,14 @@ class Connection(object):
 
     def encode(self, value):
         "Return a bytestring representation of the value"
-        if isinstance(value, unicode):
-            return value.encode(self.encoding, self.encoding_errors)
+        if isinstance(value, bytes):
+            return str(value, 'utf8')
         return str(value)
 
     def pack_command(self, *args):
         "Pack a series of arguments into a value Redis command"
         command = ['$%s\r\n%s\r\n' % (len(enc_value), enc_value)
-                   for enc_value in imap(self.encode, args)]
+                   for enc_value in map(self.encode, args)]
         return '*%s\r\n%s' % (len(command), ''.join(command))
 
 class UnixDomainSocketConnection(Connection):
