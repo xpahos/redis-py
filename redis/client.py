@@ -464,7 +464,7 @@ class StrictRedis(object):
     def mset(self, mapping):
         "Sets each key in the ``mapping`` dict to its corresponding value"
         items = []
-        for pair in mapping.iteritems():
+        for pair in mapping.items():
             items.extend(pair)
         return self.execute_command('MSET', *items)
 
@@ -474,7 +474,7 @@ class StrictRedis(object):
         none of the keys are already set
         """
         items = []
-        for pair in mapping.iteritems():
+        for pair in mapping.items():
             items.extend(pair)
         return self.execute_command('MSETNX', *items)
 
@@ -858,7 +858,7 @@ class StrictRedis(object):
                 raise RedisError("ZADD requires an equal number of "
                                  "values and scores")
             pieces.extend(args)
-        for pair in kwargs.iteritems():
+        for pair in kwargs.items():
             pieces.append(pair[1])
             pieces.append(pair[0])
         return self.execute_command('ZADD', name, *pieces)
@@ -1086,7 +1086,7 @@ class StrictRedis(object):
         if not mapping:
             raise DataError("'hmset' with 'mapping' of length 0")
         items = []
-        for pair in mapping.iteritems():
+        for pair in mapping.items():
             items.extend(pair)
         return self.execute_command('HMSET', name, *items)
 
@@ -1181,7 +1181,7 @@ class Redis(StrictRedis):
                 raise RedisError("ZADD requires an equal number of "
                                  "values and scores")
             pieces.extend(reversed(args))
-        for pair in kwargs.iteritems():
+        for pair in kwargs.items():
             pieces.append(pair[1])
             pieces.append(pair[0])
         return self.execute_command('ZADD', name, *pieces)
