@@ -158,7 +158,7 @@ else:
 
 class Connection(object):
     "Manages TCP communication to and from a Redis server"
-    def __init__(self, host='10.10.10.1', port=6379, db=0, password=None,
+    def __init__(self, host='localhost', port=6379, db=0, password=None,
                  socket_timeout=None, encoding='utf-8',
                  encoding_errors='strict', parser_class=DefaultParser):
         self.pid = os.getpid()

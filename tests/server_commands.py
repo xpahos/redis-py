@@ -9,7 +9,7 @@ from redis.client import parse_info
 class ServerCommandsTestCase(unittest.TestCase):
 
     def get_client(self, cls=redis.Redis):
-        return cls(host='10.10.10.1', port=6379, db=9)
+        return cls(host='localhost', port=6379, db=9)
 
     def setUp(self):
         self.client = self.get_client()
