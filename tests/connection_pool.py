@@ -19,13 +19,13 @@ class ConnectionPoolTestCase(unittest.TestCase):
         connection_info = {'foo': 'bar', 'biz': 'baz'}
         pool = self.get_pool(connection_info=connection_info)
         connection = pool.get_connection('_')
-        self.assertEquals(connection.kwargs, connection_info)
+        self.assertEqual(connection.kwargs, connection_info)
 
     def test_multiple_connections(self):
         pool = self.get_pool()
         c1 = pool.get_connection('_')
         c2 = pool.get_connection('_')
-        self.assert_(c1 != c2)
+        self.assertTrue(c1 != c2)
 
     def test_max_connections(self):
         pool = self.get_pool(max_connections=2)
@@ -38,4 +38,4 @@ class ConnectionPoolTestCase(unittest.TestCase):
         c1 = pool.get_connection('_')
         pool.release(c1)
         c2 = pool.get_connection('_')
-        self.assertEquals(c1, c2)
+        self.assertEqual(c1, c2)

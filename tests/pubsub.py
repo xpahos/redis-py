@@ -13,13 +13,13 @@ class PubSubTestCase(unittest.TestCase):
         self.connection_pool.disconnect()
 
     def test_channel_subscribe(self):
-        self.assertEquals(
+        self.assertEqual(
             self.pubsub.subscribe('foo'),
             ['subscribe', 'foo', 1]
             )
-        self.assertEquals(self.client.publish('foo', 'hello foo'), 1)
-        self.assertEquals(
-            self.pubsub.listen().next(),
+        self.assertEqual(self.client.publish('foo', 'hello foo'), 1)
+        self.assertEqual(
+            next(self.pubsub.listen()),
             {
                 'type': 'message',
                 'pattern': None,
@@ -27,19 +27,19 @@ class PubSubTestCase(unittest.TestCase):
                 'data': 'hello foo'
             }
             )
-        self.assertEquals(
+        self.assertEqual(
             self.pubsub.unsubscribe('foo'),
             ['unsubscribe', 'foo', 0]
             )
 
     def test_pattern_subscribe(self):
-        self.assertEquals(
+        self.assertEqual(
             self.pubsub.psubscribe('fo*'),
             ['psubscribe', 'fo*', 1]
             )
-        self.assertEquals(self.client.publish('foo', 'hello foo'), 1)
-        self.assertEquals(
-            self.pubsub.listen().next(),
+        self.assertEqual(self.client.publish('foo', 'hello foo'), 1)
+        self.assertEqual(
+            next(self.pubsub.listen()),
             {
                 'type': 'pmessage',
                 'pattern': 'fo*',
@@ -47,7 +47,7 @@ class PubSubTestCase(unittest.TestCase):
                 'data': 'hello foo'
             }
             )
-        self.assertEquals(
+        self.assertEqual(
             self.pubsub.punsubscribe('fo*'),
             ['punsubscribe', 'fo*', 0]
             )

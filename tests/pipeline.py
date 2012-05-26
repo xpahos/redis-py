@@ -4,7 +4,7 @@ import unittest
 
 class PipelineTestCase(unittest.TestCase):
     def setUp(self):
-        self.client = redis.Redis(host='localhost', port=6379, db=9)
+        self.client = redis.Redis(host='10.10.10.1', port=6379, db=9)
         self.client.flushdb()
 
     def tearDown(self):
@@ -14,7 +14,7 @@ class PipelineTestCase(unittest.TestCase):
         with self.client.pipeline() as pipe:
             pipe.set('a', 'a1').get('a').zadd('z', z1=1).zadd('z', z2=4)
             pipe.zincrby('z', 'z1').zrange('z', 0, 5, withscores=True)
-            self.assertEquals(pipe.execute(),
+            self.assertEqual(pipe.execute(),
                 [
                     True,
                     'a1',
@@ -28,10 +28,10 @@ class PipelineTestCase(unittest.TestCase):
     def test_pipeline_no_transaction(self):
         with self.client.pipeline(transaction=False) as pipe:
             pipe.set('a', 'a1').set('b', 'b1').set('c', 'c1')
-            self.assertEquals(pipe.execute(), [True, True, True])
-            self.assertEquals(self.client['a'], 'a1')
-            self.assertEquals(self.client['b'], 'b1')
-            self.assertEquals(self.client['c'], 'c1')
+            self.assertEqual(pipe.execute(), [True, True, True])
+            self.assertEqual(self.client['a'], 'a1')
+            self.assertEqual(self.client['b'], 'b1')
+            self.assertEqual(self.client['c'], 'c1')
 
     def test_pipeline_no_transaction_watch(self):
         self.client.set('a', 0)
@@ -43,7 +43,7 @@ class PipelineTestCase(unittest.TestCase):
             pipe.multi()
             pipe.set('a', int(a) + 1)
             result = pipe.execute()
-            self.assertEquals(result, [True])
+            self.assertEqual(result, [True])
 
     def test_pipeline_no_transaction_watch_failure(self):
         self.client.set('a', 0)
@@ -65,20 +65,20 @@ class PipelineTestCase(unittest.TestCase):
             pipe.set('a', 1).set('b', 2).lpush('c', 3).set('d', 4)
             result = pipe.execute()
 
-            self.assertEquals(result[0], True)
-            self.assertEquals(self.client['a'], '1')
-            self.assertEquals(result[1], True)
-            self.assertEquals(self.client['b'], '2')
+            self.assertEqual(result[0], True)
+            self.assertEqual(self.client['a'], '1')
+            self.assertEqual(result[1], True)
+            self.assertEqual(self.client['b'], '2')
             # we can't lpush to a key that's a string value, so this should
             # be a ResponseError exception
-            self.assert_(isinstance(result[2], redis.ResponseError))
-            self.assertEquals(self.client['c'], 'a')
-            self.assertEquals(result[3], True)
-            self.assertEquals(self.client['d'], '4')
+            self.assertTrue(isinstance(result[2], redis.ResponseError))
+            self.assertEqual(self.client['c'], 'a')
+            self.assertEqual(result[3], True)
+            self.assertEqual(self.client['d'], '4')
 
             # make sure the pipe was restored to a working state
-            self.assertEquals(pipe.set('z', 'zzz').execute(), [True])
-            self.assertEquals(self.client['z'], 'zzz')
+            self.assertEqual(pipe.set('z', 'zzz').execute(), [True])
+            self.assertEqual(self.client['z'], 'zzz')
 
     def test_watch_succeed(self):
         self.client.set('a', 1)
@@ -86,16 +86,16 @@ class PipelineTestCase(unittest.TestCase):
 
         with self.client.pipeline() as pipe:
             pipe.watch('a', 'b')
-            self.assertEquals(pipe.watching, True)
+            self.assertEqual(pipe.watching, True)
             a = pipe.get('a')
             b = pipe.get('b')
-            self.assertEquals(a, '1')
-            self.assertEquals(b, '2')
+            self.assertEqual(a, '1')
+            self.assertEqual(b, '2')
             pipe.multi()
 
             pipe.set('c', 3)
-            self.assertEquals(pipe.execute(), [True])
-            self.assertEquals(pipe.watching, False)
+            self.assertEqual(pipe.execute(), [True])
+            self.assertEqual(pipe.watching, False)
 
     def test_watch_failure(self):
         self.client.set('a', 1)
@@ -107,7 +107,7 @@ class PipelineTestCase(unittest.TestCase):
             pipe.multi()
             pipe.get('a')
             self.assertRaises(redis.WatchError, pipe.execute)
-            self.assertEquals(pipe.watching, False)
+            self.assertEqual(pipe.watching, False)
 
     def test_unwatch(self):
         self.client.set('a', 1)
@@ -117,9 +117,9 @@ class PipelineTestCase(unittest.TestCase):
             pipe.watch('a', 'b')
             self.client.set('b', 3)
             pipe.unwatch()
-            self.assertEquals(pipe.watching, False)
+            self.assertEqual(pipe.watching, False)
             pipe.get('a')
-            self.assertEquals(pipe.execute(), ['1'])
+            self.assertEqual(pipe.execute(), ['1'])
 
     def test_transaction_callable(self):
         self.client.set('a', 1)
@@ -128,9 +128,9 @@ class PipelineTestCase(unittest.TestCase):
 
         def my_transaction(pipe):
             a = pipe.get('a')
-            self.assert_(a in ('1', '2'))
+            self.assertTrue(a in ('1', '2'))
             b = pipe.get('b')
-            self.assertEquals(b, '2')
+            self.assertEqual(b, '2')
 
             # silly one-once code... incr's a so WatchError should be raised
             # forcing this all to run again
@@ -142,5 +142,5 @@ class PipelineTestCase(unittest.TestCase):
             pipe.set('c', int(a)+int(b))
 
         result = self.client.transaction(my_transaction, 'a', 'b')
-        self.assertEquals(result, [True])
-        self.assertEquals(self.client.get('c'), '4')
+        self.assertEqual(result, [True])
+        self.assertEqual(self.client.get('c'), '4')

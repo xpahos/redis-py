@@ -18,7 +18,7 @@ def list_or_args(keys, args):
         iter(keys)
         # a string can be iterated, but indicates
         # keys wasn't passed as a list
-        if isinstance(keys, basestring):
+        if isinstance(keys, str):
             keys = [keys]
     except TypeError:
         keys = [keys]
@@ -109,7 +109,7 @@ def zset_score_pairs(response, **options):
         return response
     score_cast_func = options.get('score_cast_func', float)
     it = iter(response)
-    return zip(it, map(score_cast_func, it))
+    return list(zip(it, map(score_cast_func, it)))
 
 def int_or_none(response):
     if response is None:
@@ -152,7 +152,7 @@ class StrictRedis(object):
         string_keys_to_dict(
             # these return OK, or int if redis-server is >=1.3.4
             'LPUSH RPUSH',
-            lambda r: isinstance(r, long) and r or r == 'OK'
+            lambda r: isinstance(r, int) and r or r == 'OK'
             ),
         string_keys_to_dict('ZSCORE ZINCRBY', float_or_none),
         string_keys_to_dict(
@@ -582,7 +582,7 @@ class StrictRedis(object):
         """
         if timeout is None:
             timeout = 0
-        if isinstance(keys, basestring):
+        if isinstance(keys, str):
             keys = [keys]
         else:
             keys = list(keys)
@@ -602,7 +602,7 @@ class StrictRedis(object):
         """
         if timeout is None:
             timeout = 0
-        if isinstance(keys, basestring):
+        if isinstance(keys, str):
             keys = [keys]
         else:
             keys = list(keys)
@@ -750,7 +750,7 @@ class StrictRedis(object):
             # Otherwise assume it's an interable and we want to get multiple
             # values. We can't just iterate blindly because strings are
             # iterable.
-            if isinstance(get, basestring):
+            if isinstance(get, str):
                 pieces.append('GET')
                 pieces.append(get)
             else:
@@ -1260,7 +1260,7 @@ class PubSub(object):
 
     def psubscribe(self, patterns):
         "Subscribe to all channels matching any pattern in ``patterns``"
-        if isinstance(patterns, basestring):
+        if isinstance(patterns, str):
             patterns = [patterns]
         for pattern in patterns:
             self.patterns.add(pattern)
@@ -1271,7 +1271,7 @@ class PubSub(object):
         Unsubscribe from any channel matching any pattern in ``patterns``.
         If empty, unsubscribe from all channels.
         """
-        if isinstance(patterns, basestring):
+        if isinstance(patterns, str):
             patterns = [patterns]
         for pattern in patterns:
             try:
@@ -1282,7 +1282,7 @@ class PubSub(object):
 
     def subscribe(self, channels):
         "Subscribe to ``channels``, waiting for messages to be published"
-        if isinstance(channels, basestring):
+        if isinstance(channels, str):
             channels = [channels]
         for channel in channels:
             self.channels.add(channel)
@@ -1293,7 +1293,7 @@ class PubSub(object):
         Unsubscribe from ``channels``. If empty, unsubscribe
         from all channels
         """
-        if isinstance(channels, basestring):
+        if isinstance(channels, str):
             channels = [channels]
         for channel in channels:
             try:

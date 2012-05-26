@@ -9,10 +9,7 @@ from redis.exceptions import (
     AuthenticationError
 )
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
+from io import BytesIO
 
 try:
     import hiredis
@@ -57,7 +54,7 @@ class PythonParser(object):
                     # https://github.com/andymccurdy/redis-py/issues/205
                     # read smaller chunks at a time to work around this
                     try:
-                        buf = StringIO()
+                        buf = BytesIO()
                         while bytes_left > 0:
                             read_len = min(bytes_left, self.MAX_READ_LENGTH)
                             buf.write(self._fp.read(read_len))
@@ -75,7 +72,7 @@ class PythonParser(object):
                 (e.args,))
 
     def read_response(self):
-        response = str(self.read(), 'utf8')
+        response = self.read().decode()
         if not response:
             raise ConnectionError("Socket closed on remote end")
 
@@ -102,7 +99,7 @@ class PythonParser(object):
             if length == -1:
                 return None
             response = self.read(length)
-            return str(response, 'utf8')
+            return response.decode()
         # multi-bulk response
         elif byte == '*':
             length = int(response)
@@ -161,7 +158,7 @@ else:
 
 class Connection(object):
     "Manages TCP communication to and from a Redis server"
-    def __init__(self, host='localhost', port=6379, db=0, password=None,
+    def __init__(self, host='10.10.10.1', port=6379, db=0, password=None,
                  socket_timeout=None, encoding='utf-8',
                  encoding_errors='strict', parser_class=DefaultParser):
         self.pid = os.getpid()
@@ -242,7 +239,7 @@ class Connection(object):
         if not self._sock:
             self.connect()
         try:
-            self._sock.sendall(bytes(command, 'utf8'))
+            self._sock.sendall(command.encode())
         except socket.error as e:
             self.disconnect()
             if len(e.args) == 1:
@@ -273,12 +270,12 @@ class Connection(object):
     def encode(self, value):
         "Return a bytestring representation of the value"
         if isinstance(value, bytes):
-            return str(value, 'utf8')
+            return value.decode()
         return str(value)
 
     def pack_command(self, *args):
         "Pack a series of arguments into a value Redis command"
-        command = ['$%s\r\n%s\r\n' % (len(enc_value), enc_value)
+        command = ['$%s\r\n%s\r\n' % (len(enc_value.encode()), enc_value)
                    for enc_value in map(self.encode, args)]
         return '*%s\r\n%s' % (len(command), ''.join(command))
 

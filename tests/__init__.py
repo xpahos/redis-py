@@ -1,9 +1,9 @@
 import unittest
-from server_commands import ServerCommandsTestCase
-from connection_pool import ConnectionPoolTestCase
-from pipeline import PipelineTestCase
-from lock import LockTestCase
-from pubsub import PubSubTestCase, PubSubRedisDownTestCase
+from tests.server_commands import ServerCommandsTestCase
+from tests.connection_pool import ConnectionPoolTestCase
+from tests.pipeline import PipelineTestCase
+from tests.lock import LockTestCase
+from tests.pubsub import PubSubTestCase, PubSubRedisDownTestCase
 
 use_hiredis = False
 try:
